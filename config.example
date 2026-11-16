@@ -1,0 +1,22 @@
+# net-watch 설정 파일 예시
+# ~/.config/net-watch/config 로 복사해서 고친다. 없는 항목은 기본값을 쓴다.
+# bash 문법이다. 공백 없이 '이름=값' 으로 쓴다.
+
+# 감시할 외부 호스트(ping에 응답하는 곳이어야 한다)
+HOSTS=(github.com api.anthropic.com)
+
+# 노랑으로 바꾸는 평균 지연 기준(ms)
+EXT_WARN_MS=150
+GW_WARN_MS=30
+
+# 손실률이 이 값(%) 이상이면 빨강
+RED_LOSS=50
+
+# 빨강이 이 횟수만큼 이어지면 알림(30초 간격이면 2회가 약 1분)
+RED_STREAK=2
+
+# 알림을 끄려면 0
+NOTIFY=1
+
+# 메뉴에서 실행할 진단 스크립트(선택)
+# DIAG_SCRIPT="$HOME/bin/my-network-diag.sh"
