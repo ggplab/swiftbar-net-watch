@@ -116,7 +116,7 @@ curl -fsSL https://raw.githubusercontent.com/ggplab/swiftbar-net-watch/main/conf
 
 ## 필요 환경
 
-- macOS (Apple Silicon, Intel 모두 됩니다. 기본 명령 `ping`, `route`를 씁니다)
+- macOS. Apple Silicon 맥에서 확인했습니다. 기본 명령(`ping`, `route`)을 쓰므로 Intel 맥에서도 동작할 것으로 봅니다
 - [SwiftBar](https://github.com/swiftbar/SwiftBar)
 
 ## 라이선스
