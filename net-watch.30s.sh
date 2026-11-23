@@ -196,9 +196,17 @@ else
 fi
 echo "$streak $alerted" > "$STATE_FILE"
 
+# 빨강도 RED_STREAK 회 이어지기 전에는 노랑으로 보인다. 잠자기에서 깬 직후처럼 한 번만 실패하는 경우가 흔하다.
+where_grade=$overall
+if [ "$overall" = "2" ] && [ "$streak" -lt "$RED_STREAK" ]; then
+  title="🟡${title#🔴}"
+  where="$where, 한 번 실패라 다음 측정에서 다시 확인"
+  where_grade=1
+fi
+
 echo "$title"
 echo "---"
-echo "$where | color=$(color "$overall")"
+echo "$where | color=$(color "$where_grade")"
 echo "---"
 echo "$gw_line"
 for l in "${lines[@]}"; do echo "$l"; done

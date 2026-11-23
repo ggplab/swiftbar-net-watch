@@ -87,7 +87,7 @@ curl -fsSL https://raw.githubusercontent.com/ggplab/swiftbar-net-watch/main/conf
 | `EXT_WARN_MS` | 150 | 서버 평균 지연이 이 값(ms)을 넘으면 노랑 |
 | `GW_WARN_MS` | 30 | 공유기 평균 지연이 이 값(ms)을 넘으면 노랑 |
 | `RED_LOSS` | 50 | 손실률이 이 값(%) 이상이면 빨강 |
-| `RED_STREAK` | 2 | 빨강이 이 횟수만큼 이어지면 알림. 30초 간격이면 약 1분입니다 |
+| `RED_STREAK` | 2 | 빨강이 이 횟수만큼 이어지면 메뉴바를 🔴로 바꾸고 알림. 그 전에는 🟡입니다. 30초 간격이면 약 1분입니다 |
 | `NOTIFY` | 1 | 0이면 알림을 보내지 않습니다 |
 | `DIAG_SCRIPT` | 없음 | 메뉴에서 바로 돌릴 진단 스크립트 경로 |
 
@@ -95,7 +95,8 @@ curl -fsSL https://raw.githubusercontent.com/ggplab/swiftbar-net-watch/main/conf
 
 ## 알림
 
-- 빨강이 `RED_STREAK`번 이어지면 알림을 한 번 보냅니다.
+- 측정이 한 번만 실패하면 메뉴바는 🟡로 보이고, 다음 측정에서 다시 확인합니다. 잠자기에서 깬 직후처럼 잠깐 실패하는 경우가 흔하기 때문입니다.
+- 빨강이 `RED_STREAK`번 이어지면 메뉴바가 🔴로 바뀌고 알림을 한 번 보냅니다.
 - 회복하면 한 번 더 알립니다.
 - 같은 상태가 이어지는 동안에는 다시 알리지 않습니다.
 
