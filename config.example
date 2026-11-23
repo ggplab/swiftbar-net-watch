@@ -2,8 +2,13 @@
 # ~/.config/net-watch/config 로 복사해서 고친다. 없는 항목은 기본값을 쓴다.
 # bash 문법이다. 공백 없이 '이름=값' 으로 쓴다.
 
-# 감시할 외부 호스트(ping에 응답하는 곳이어야 한다)
+# 감시할 외부 호스트(PROBE=tcp면 HTTPS를 여는 곳이어야 한다)
 HOSTS=(github.com api.anthropic.com)
+
+# 외부 측정 방법: tcp(HTTPS 연결 시간, 기본값) 또는 icmp(ping)
+# 바깥 ping을 막는 망에서 icmp를 쓰면 연결이 멀쩡해도 손실 100%로 보인다
+PROBE=tcp
+TCP_COUNT=3
 
 # 노랑으로 바꾸는 평균 지연 기준(ms)
 EXT_WARN_MS=150

@@ -4,7 +4,7 @@
 # <bitbar.author>BuildnWrite</bitbar.author>
 # <bitbar.author.github>ggplab</bitbar.author.github>
 # <bitbar.desc>공유기와 자주 쓰는 서버의 지연과 손실을 메뉴바에 띄우고, 끊기면 알린다.</bitbar.desc>
-# <bitbar.dependencies>bash,ping</bitbar.dependencies>
+# <bitbar.dependencies>bash,ping,curl</bitbar.dependencies>
 # <bitbar.abouturl>https://github.com/ggplab/swiftbar-net-watch</bitbar.abouturl>
 # <swiftbar.hideAbout>true</swiftbar.hideAbout>
 # <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
@@ -17,7 +17,9 @@ export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
 # ---- 기본값 (설정 파일에서 덮어쓴다) ----
 HOSTS=(github.com api.anthropic.com)   # 외부 감시 대상
-PING_COUNT=5
+PROBE=tcp            # 외부 측정 방법: tcp(HTTPS 연결) 또는 icmp(ping)
+TCP_COUNT=3          # tcp 측정 때 연결을 맺는 횟수
+PING_COUNT=5         # 공유기(그리고 icmp 모드의 외부) ping 횟수
 EXT_WARN_MS=150      # 외부 평균 지연이 이 값을 넘으면 노랑
 GW_WARN_MS=30        # 공유기 평균 지연이 이 값을 넘으면 노랑
 RED_LOSS=50          # 손실률이 이 값 이상이면 빨강
@@ -38,6 +40,28 @@ trap 'rm -f "$TMP"/*; rmdir "$TMP"' EXIT
 ROUTE="$(route -n get default 2>/dev/null)"
 GW="$(printf '%s\n' "$ROUTE" | awk '/gateway:/{print $2}')"
 IFACE="$(printf '%s\n' "$ROUTE" | awk '/interface:/{print $2}')"
+
+# 외부 호스트를 잴 방법. tcp=HTTPS(443) 연결 시간, icmp=ping.
+# 회사망, 테더링, 일부 와이파이는 바깥 ping을 막아 연결이 멀쩡해도 손실 100%로 보이므로 tcp가 기본값이다.
+probe_ext() {
+  if [ "$PROBE" = "icmp" ]; then probe "$@"; else probe_tcp "$@"; fi
+}
+
+# HTTPS 연결을 TCP_COUNT 번 맺어 "손실률 평균ms" 를 파일에 쓴다. 상태 코드와 무관하게 응답이 오면 성공이다.
+probe_tcp() {
+  local host="$1" out="$2" i r code t ok=0 sum=0 loss avg
+  for ((i = 0; i < TCP_COUNT; i++)); do
+    r="$(curl -s -o /dev/null -I --connect-timeout 3 -m 4 -w '%{http_code} %{time_connect}' "https://$host" 2>/dev/null)"
+    code="${r%% *}"; t="${r##* }"
+    if [ -n "$code" ] && [ "$code" != "000" ]; then
+      ok=$((ok + 1))
+      sum="$(awk -v s="$sum" -v t="$t" 'BEGIN{print s + t * 1000}')"
+    fi
+  done
+  loss=$(( (TCP_COUNT - ok) * 100 / TCP_COUNT ))
+  if [ "$ok" -gt 0 ]; then avg="$(awk -v s="$sum" -v n="$ok" 'BEGIN{printf "%.3f", s / n}')"; else avg="-"; fi
+  printf '%s %s\n' "$loss" "$avg" > "$out"
+}
 
 # ping 한 번 돌려 "손실률 평균ms" 를 파일에 쓴다. 응답이 하나도 없으면 평균은 -.
 probe() {
@@ -106,7 +130,7 @@ fi
 
 # 병렬 측정. VPN처럼 기본 경로에 게이트웨이가 없으면 공유기 측정은 건너뛴다.
 [ -n "$GW" ] && probe "$GW" "$TMP/gw" &
-for i in "${!HOSTS[@]}"; do probe "${HOSTS[$i]}" "$TMP/h$i" & done
+for i in "${!HOSTS[@]}"; do probe_ext "${HOSTS[$i]}" "$TMP/h$i" & done
 wait
 
 ext_worst=0; ext_max_avg=0; ext_max_loss=0

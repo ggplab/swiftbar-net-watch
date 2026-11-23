@@ -1,6 +1,6 @@
 # swiftbar-net-watch
 
-맥 메뉴바에 지금 연결 상태를 늘 띄워 두는 SwiftBar 플러그인입니다. 30초마다 공유기와 자주 쓰는 서버(기본값은 github.com, api.anthropic.com)에 ping을 보내 지연과 손실을 보여 주고, 연결이 끊기면 알림을 보냅니다.
+맥 메뉴바에 지금 연결 상태를 늘 띄워 두는 SwiftBar 플러그인입니다. 30초마다 공유기와 자주 쓰는 서버(기본값은 github.com, api.anthropic.com)까지의 지연과 손실을 재서 보여 주고, 연결이 끊기면 알림을 보냅니다.
 
 ![메뉴바 표시 예시](assets/menubar.png)
 
@@ -81,7 +81,9 @@ curl -fsSL https://raw.githubusercontent.com/ggplab/swiftbar-net-watch/main/conf
 
 | 항목 | 기본값 | 뜻 |
 |---|---|---|
-| `HOSTS` | `(github.com api.anthropic.com)` | 감시할 서버. ping에 응답하는 곳이어야 합니다 |
+| `HOSTS` | `(github.com api.anthropic.com)` | 감시할 서버. `PROBE=tcp`면 HTTPS(443)를 여는 곳이어야 합니다 |
+| `PROBE` | `tcp` | 서버를 재는 방법. `tcp`는 HTTPS 연결 시간, `icmp`는 ping입니다 |
+| `TCP_COUNT` | 3 | `tcp` 측정 때 연결을 맺는 횟수 |
 | `EXT_WARN_MS` | 150 | 서버 평균 지연이 이 값(ms)을 넘으면 노랑 |
 | `GW_WARN_MS` | 30 | 공유기 평균 지연이 이 값(ms)을 넘으면 노랑 |
 | `RED_LOSS` | 50 | 손실률이 이 값(%) 이상이면 빨강 |
@@ -99,10 +101,10 @@ curl -fsSL https://raw.githubusercontent.com/ggplab/swiftbar-net-watch/main/conf
 
 ## 알아 둘 점
 
-- **ping을 막는 곳**: 회사망이나 일부 공용 와이파이는 바깥으로 나가는 ping을 막습니다. 그러면 연결이 멀쩡해도 빨강으로 보입니다. 이때는 그 망에서 ping에 응답하는 서버로 `HOSTS`를 바꿉니다.
+- **바깥 서버는 ping 대신 HTTPS 연결로 잽니다**: 회사망, 휴대폰 테더링, 일부 공용 와이파이는 바깥으로 나가는 ping을 막습니다. github.com처럼 ping에 답하지 않는 서버도 있습니다. 그래서 기본값은 HTTPS 연결 시간입니다. ping으로 재고 싶으면 `PROBE=icmp`로 바꿉니다. 공유기는 그대로 ping으로 잽니다.
 - **공유기가 ping에 답하지 않는 경우**: 호텔이나 행사장 와이파이에서 흔합니다. 공유기는 응답이 없고 바깥 서버는 응답하면, 공유기를 판정에서 빼고 ⚪로 표시합니다.
 - **VPN을 켠 경우**: 기본 경로에 공유기 주소가 없으면 공유기 측정을 건너뛰고 외부 서버를 잽니다.
-- **ping은 통신 경로를 잽니다**: 서버까지 길이 막혔는지는 알 수 있지만, 서비스 자체가 느린 것(예: API 서버의 응답 지연)은 잡지 못합니다.
+- **연결 시간은 통신 경로를 잽니다**: 서버까지 길이 막혔는지는 알 수 있지만, 서비스 자체가 느린 것(예: API 서버의 응답 지연)은 잡지 못합니다.
 
 ## 끄기와 지우기
 
@@ -116,7 +118,7 @@ curl -fsSL https://raw.githubusercontent.com/ggplab/swiftbar-net-watch/main/conf
 
 ## 필요 환경
 
-- macOS. Apple Silicon 맥에서 확인했습니다. 기본 명령(`ping`, `route`)을 쓰므로 Intel 맥에서도 동작할 것으로 봅니다
+- macOS. Apple Silicon 맥에서 확인했습니다. 기본 명령(`ping`, `curl`, `route`)을 쓰므로 Intel 맥에서도 동작할 것으로 봅니다
 - [SwiftBar](https://github.com/swiftbar/SwiftBar)
 
 ## 라이선스
